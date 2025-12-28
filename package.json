@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "description": "Backend for ai-agent-control-center",
   "main": "server.ts",
-  "scripts": {
-    "start": "node server.ts",
-    "dev": "nodemon server.ts",
-    "test": "echo \"Error: no test specified\"  && exit 1"
-  },
+"scripts": {
+  "start": "node dist/server.js",
+  "dev": "tsx watch server.ts"
+},
   "keywords": [
     ""
   ],
@@ -29,6 +28,7 @@
     "prisma": "^7.2.0",
     "supabase": "^2.70.5",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }
