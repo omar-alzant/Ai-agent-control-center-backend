@@ -15,11 +15,29 @@ import authRoutes from './routes/authRoutes.ts';
 dotenv.config();
 
 const app = express();
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
-app.use(express.json());
+const allowedOrigins = process.env.CORS_ORIGINS?.split(",");
+
+
+
 
 const httpServer = createServer(app);
 const io = initSocket(httpServer);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins?.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed by server: " + origin));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-Filename"],
+  exposedHeaders: ["Content-Disposition"],
+}));
+
+app.use(express.json());
 
 app.use((req:any, res, next) => {
   req.io = io;
@@ -56,4 +74,6 @@ setInterval(() => {
     }
   });
 }, 2000);
-httpServer.listen(4000, () => console.log('🚀 Backend running at :4000'));
+
+const port = process.env.PORT || 4000;
+httpServer.listen(port, () => console.log(`🚀 Backend running at :${port}`));

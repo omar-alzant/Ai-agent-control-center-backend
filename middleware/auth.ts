@@ -1,26 +1,17 @@
+// middleware/auth.ts
+import jwt from 'jsonwebtoken';
 
-import { Request, Response, NextFunction } from 'express';
-import { supabaseAdmin } from '../supabase.js';
+export const protect = (req: any, res: any, next: any) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
 
-export const protect = async (req: any, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
+  if (!token) return res.status(401).json({ error: "No token provided" });
 
   try {
-    // Verify the JWT and get the user
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-
-    if (error || !user) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
-    }
-
-    // Attach the user to the request object for use in routes
-    req.user = user;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+    req.user = decoded; // This contains the { id, email } you signed in login
     next();
   } catch (err) {
-    res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).json({ error: "Invalid or expired token" });
   }
 };

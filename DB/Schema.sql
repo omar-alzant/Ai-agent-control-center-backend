@@ -9,18 +9,20 @@ CREATE TABLE "User" (
 );
 
 -- 2. Updated Agent Table (Added userId)
-CREATE TABLE "Agent" (
-    "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
-    "userId" TEXT NOT NULL, -- The owner of the agent
-    "name" TEXT NOT NULL,
-    "systemPrompt" TEXT NOT NULL,
-    "model" TEXT NOT NULL DEFAULT 'gpt-4',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+create table public."Agent" (
+  id text not null default gen_random_uuid (),
+  "userId" text not null,
+  name text not null,
+  "systemPrompt" text not null,
+  model text not null default 'gpt-4'::text,
+  "createdAt" timestamp without time zone not null default CURRENT_TIMESTAMP,
+  "isDeleted" boolean null default false,
+  "updatedAt" timestamp with time zone null default (now() AT TIME ZONE 'utc'::text),
+  constraint Agent_pkey primary key (id),
+  constraint Agent_userId_fkey foreign KEY ("userId") references "User" (id) on update CASCADE on delete CASCADE
+) TABLESPACE pg_default;
 
-    CONSTRAINT "Agent_pkey" PRIMARY KEY ("id"),
-    CONSTRAINT "Agent_userId_fkey" FOREIGN KEY ("userId") 
-        REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
+create index IF not exists "Agent_userId_idx" on public."Agent" using btree ("userId") TABLESPACE pg_default;
 
 -- 3. Updated Conversation Table (Added userId)
 CREATE TABLE "Conversation" (

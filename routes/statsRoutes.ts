@@ -4,10 +4,8 @@ import { protect } from '../middleware/auth.ts'; // Import your middleware
 
 const router = Router();
 
-// GET total tokens for the logged-in user
-// Note: We removed /:userId because we get it from the token
 router.get('/my-tokens', protect, async (req: any, res) => {
-  const userId = req.user.id; // Extracted from verified JWT
+  const userId = req.user.id; 
   
   try {
     const { data, error } = await supabaseAdmin

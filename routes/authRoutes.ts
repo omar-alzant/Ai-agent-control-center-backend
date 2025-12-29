@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { supabaseAdmin } from '../supabase.js';
+import { getAuthenticatedSupabaseClient, supabaseAdmin } from '../supabase.js';
 import { protect } from '../middleware/auth.js';
+import jwt from  'jsonwebtoken';
 
 const router = Router();
 
@@ -55,22 +56,59 @@ router.post('/signup', async (req, res) => {
   res.status(201).json({ message: "User created successfully", user: authData.user });
 });
 
-// LOG IN (Returns a JWT token to the frontend)
+
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
+  
+  try {
+    const { data: loginData, error: loginError } = await supabaseAdmin.auth.signInWithPassword({
+      email,
+      password
+    });
 
-  const { data, error } = await supabaseAdmin.auth.signInWithPassword({
-    email,
-    password,
+    
+    if (loginError) return res.status(400).json({ error: loginError.message });
+    const authenticatedClient = getAuthenticatedSupabaseClient(loginData.session.access_token);
+
+    const { data: user, error } = await authenticatedClient
+      .from('User')
+      .select('*')
+      .eq('id', loginData.user.id)
+      .single();
+      
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    const token = jwt.sign(
+      { 
+        id: loginData.user.id, 
+        email, 
+      }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '24h' }
+    );
+
+
+  const updatedAt = new Date().toISOString();  
+
+  await supabaseAdmin
+    .from('user')
+    .update({ updated_at: updatedAt })
+    .eq('id', loginData.user.id);
+
+  res.json({ 
+    message: 'Login successful', 
+    token: token, 
+    user: {
+      id: loginData.user.id,
+      email: loginData.user.email,
+      permissionToDelete: user.permissionToDelete,
+    } 
+  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
   });
 
-  if (error) return res.status(401).json({ error: "Invalid credentials" });
-
-  // Send the session (access_token) to the frontend
-  res.json({
-    token: data.session.access_token,
-    user: data.user
-  });
-});
-
-export default router;
+export default router; 
