@@ -23,14 +23,14 @@ const allowedOrigins = (process.env.CORS_ORIGINS || "")
   .map(o => o.trim())
   .filter(Boolean);
 
-  
+
   app.use(cors({
     origin: allowedOrigins,
     credentials: true,
   }));
   
-  app.options("*", cors());
-  
+  // app.options("*", cors());
+  app.options('/*splat', cors());
 
 app.use(express.json());
 
