@@ -15,27 +15,39 @@ import authRoutes from './routes/authRoutes.ts';
 dotenv.config();
 
 const app = express();
-const allowedOrigins = process.env.CORS_ORIGINS?.split(",");
-
-
-
-
 const httpServer = createServer(app);
 const io = initSocket(httpServer);
 
+const allowedOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map(o => o.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins?.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS not allowed by server: " + origin));
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
+
+    console.error("❌ Blocked by CORS:", origin);
+    callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-Filename"],
   exposedHeaders: ["Content-Disposition"],
 }));
+
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+  next();
+});
+
 
 app.use(express.json());
 
