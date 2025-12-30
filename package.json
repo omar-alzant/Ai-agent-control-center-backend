@@ -4,7 +4,6 @@
   "description": "Backend for ai-agent-control-center",
   "main": "server.ts",
   "scripts": {
-  "build": "tsc",
   "start": "tsx server.ts",
   "dev": "tsx watch server.ts"
   },
