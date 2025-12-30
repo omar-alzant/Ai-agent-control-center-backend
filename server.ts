@@ -75,5 +75,18 @@ setInterval(() => {
   });
 }, 2000);
 
-const port = process.env.PORT || 4000;
-httpServer.listen(port, () => console.log(`🚀 Backend running at :${port}`));
+const PORT = Number(process.env.PORT) || 4000;
+
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server & Sockets confirmed running on port: ${PORT}`);
+});
+
+httpServer.on('error', (e: any) => {
+  if (e.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use.`);
+  } else if (e.code === 'EACCES') {
+    console.error(`❌ Permission denied on port ${PORT}. Check Railway settings.`);
+  } else {
+    console.error('❌ Unknown Server Error:', e);
+  }
+});
