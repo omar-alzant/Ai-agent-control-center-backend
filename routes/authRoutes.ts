@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { getAuthenticatedSupabaseClient, supabaseAdmin } from '../supabase.js';
-import { protect } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.ts';
 import jwt from  'jsonwebtoken';
 
-const router = Router();
+const router = Router(); 
 
 // REQUEST PASSWORD RESET
 router.post('/forgot-password', async (req, res) => {
